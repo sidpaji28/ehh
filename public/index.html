@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OnneaLabs — Lead Command Center</title>
+  <link rel="icon" type="image/x-icon" href="https://www.onnealabs.com/favicon.ico">
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+</head>
+<body>
+
+  <!-- ================================ -->
+  <!-- LOGIN SCREEN -->
+  <!-- ================================ -->
+  <div id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <div class="login-logo">
+        <img src="https://www.onnealabs.com/favicon.ico" alt="OnneaLabs" class="logo-img">
+        <h1>OnneaLabs</h1>
+        <p>Lead Command Center</p>
+      </div>
+      <form id="loginForm">
+        <div class="input-group">
+          <i class="fas fa-envelope"></i>
+          <input type="email" id="loginEmail" placeholder="Email" required>
+        </div>
+        <div class="input-group">
+          <i class="fas fa-lock"></i>
+          <input type="password" id="loginPassword" placeholder="Password" required>
+        </div>
+        <button type="submit" class="btn-primary btn-full">
+          <span>Sign In</span>
+          <i class="fas fa-arrow-right"></i>
+        </button>
+        <p id="loginError" class="error-text"></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================================ -->
+  <!-- MAIN DASHBOARD -->
+  <!-- ================================ -->
+  <div id="dashboard" class="dashboard hidden">
+
+    <!-- ── Sidebar ── -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <img src="https://www.onnealabs.com/favicon.ico" alt="OnneaLabs" class="logo-img-sm">
+        <span class="brand-name">OnneaLabs</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item active" data-view="overview">
+          <i class="fas fa-chart-line"></i>
+          <span>Overview</span>
+        </a>
+        <a href="#" class="nav-item" data-view="leads">
+          <i class="fas fa-users"></i>
+          <span>All Leads</span>
+        </a>
+        <a href="#" class="nav-item" data-view="pipeline">
+          <i class="fas fa-filter"></i>
+          <span>Pipeline</span>
+        </a>
+        <a href="#" class="nav-item" data-view="audits">
+          <i class="fas fa-clipboard-check"></i>
+          <span>Audits</span>
+        </a>
+        <a href="#" class="nav-item" data-view="apollo">
+          <i class="fas fa-satellite-dish"></i>
+          <span>Apollo Search</span>
+        </a>
+        <a href="#" class="nav-item" data-view="qualify">
+          <i class="fas fa-brain"></i>
+          <span>Lead Intel</span>
+        </a>
+        <a href="#" class="nav-item" data-view="bulkemail">
+          <i class="fas fa-paper-plane"></i>
+          <span>Bulk Email</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button id="logoutBtn" class="btn-ghost">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Logout</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ── Main Content ── -->
+    <main class="main-content">
+
+      <!-- Topbar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button id="sidebarToggle" class="sidebar-toggle">
+            <i class="fas fa-bars"></i>
+          </button>
+          <h2 id="pageTitle">Overview</h2>
+        </div>
+        <div class="topbar-right">
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="globalSearch" placeholder="Search leads...">
+          </div>
+          <button id="addLeadBtn" class="btn-primary">
+            <i class="fas fa-plus"></i>
+            <span>Add Lead</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- ================================ -->
+      <!-- OVERVIEW VIEW -->
+      <!-- ================================ -->
+      <section id="overviewView" class="view active">
+
+        <div class="stats-grid">
+          <div class="stat-card stat-total">
+            <div class="stat-icon"><i class="fas fa-database"></i></div>
+            <div class="stat-info">
+              <span class="stat-number" id="statTotal">0</span>
+              <span class="stat-label">Total Leads</span>
+            </div>
+          </div>
+          <div class="stat-card stat-new">
+            <div class="stat-icon"><i class="fas fa-bolt"></i></div>
+            <div class="stat-info">
+              <span class="stat-number" id="statNew">0</span>
+              <span class="stat-label">New This Week</span>
+            </div>
+          </div>
+          <div class="stat-card stat-pipeline">
+            <div class="stat-icon"><i class="fas fa-rocket"></i></div>
+            <div class="stat-info">
+              <span class="stat-number" id="statPipeline">0</span>
+              <span class="stat-label">In Pipeline</span>
+            </div>
+          </div>
+          <div class="stat-card stat-won">
+            <div class="stat-icon"><i class="fas fa-trophy"></i></div>
+            <div class="stat-info">
+              <span class="stat-number" id="statWon">0</span>
+              <span class="stat-label">Won</span>
+            </div>
+          </div>
+          <div class="stat-card stat-audit">
+            <div class="stat-icon"><i class="fas fa-clipboard-check"></i></div>
+            <div class="stat-info">
+              <span class="stat-number" id="statAudit">0</span>
+              <span class="stat-label">Audits Done</span>
+            </div>
+          </div>
+          <div class="stat-card stat-critical">
+            <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+            <div class="stat-info">
+              <span class="stat-number" id="statCritical">0</span>
+              <span class="stat-label">Critical Priority</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="overview-grid">
+          <div class="card recent-leads-card">
+            <div class="card-header">
+              <h3>Recent Leads</h3>
+              <a href="#" class="view-all" data-view="leads">View All →</a>
+            </div>
+            <div id="recentLeadsList" class="recent-leads-list"></div>
+          </div>
+
+          <div class="card source-breakdown-card">
+            <div class="card-header">
+              <h3>Lead Sources</h3>
+            </div>
+            <div id="sourceBreakdown" class="source-bars"></div>
+          </div>
+
+          <div class="card stage-breakdown-card">
+            <div class="card-header">
+              <h3>Pipeline Stages</h3>
+            </div>
+            <div id="stageBreakdown" class="stage-funnel"></div>
+          </div>
+        </div>
+
+        <div class="icp-dashboard">
+          <div class="card">
+            <div class="card-header"><h3>🎯 ICP Match Analysis</h3></div>
+            <div class="icp-breakdown" id="icpBreakdown"></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>👔 Seniority Distribution</h3></div>
+            <div class="seniority-chart" id="seniorityChart"></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>🏆 Top Opportunities</h3></div>
+            <div id="topOpportunities" class="opportunities-list"></div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ================================ -->
+      <!-- LEADS VIEW -->
+      <!-- ================================ -->
+      <section id="leadsView" class="view">
+
+        <div class="view-controls">
+          <div class="filter-group">
+            <select id="filterStage" class="filter-select">
+              <option value="">All Stages</option>
+              <option value="new">New</option>
+              <option value="contacted">Contacted</option>
+              <option value="responded">Responded</option>
+              <option value="meeting_scheduled">Meeting Scheduled</option>
+              <option value="proposal_sent">Proposal Sent</option>
+              <option value="negotiation">Negotiation</option>
+              <option value="won">Won</option>
+              <option value="lost">Lost</option>
+              <option value="dormant">Dormant</option>
+            </select>
+            <select id="filterSource" class="filter-select">
+              <option value="">All Sources</option>
+              <option value="website_form">Website</option>
+              <option value="social_instagram">Instagram</option>
+              <option value="social_linkedin">LinkedIn</option>
+              <option value="social_twitter">Twitter</option>
+              <option value="apollo">Apollo</option>
+              <option value="lusha">Lusha</option>
+              <option value="manual_research">Research</option>
+              <option value="referral">Referral</option>
+              <option value="other">Other</option>
+            </select>
+            <select id="filterPriority" class="filter-select">
+              <option value="">All Priorities</option>
+              <option value="critical">Critical</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+              <option value="not_assessed">Not Assessed</option>
+            </select>
+            <select id="filterAudit" class="filter-select">
+              <option value="">Audit Status</option>
+              <option value="true">Audit Taken</option>
+              <option value="false">No Audit</option>
+            </select>
+          </div>
+          <div class="view-actions">
+            <button id="bulkEmailFromLeadsBtn" class="btn-ghost btn-sm">
+              <i class="fas fa-envelope"></i> Bulk Email
+            </button>
+            <button id="exportBtn" class="btn-ghost btn-sm">
+              <i class="fas fa-download"></i> Export CSV
+            </button>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table class="leads-table">
+            <thead>
+              <tr>
+                <th style="width:36px"><input type="checkbox" id="selectAllLeads"></th>
+                <th class="sortable" data-sort="name">Name <i class="fas fa-sort"></i></th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th class="sortable" data-sort="industry">Industry <i class="fas fa-sort"></i></th>
+                <th class="sortable" data-sort="contact_stage">Stage <i class="fas fa-sort"></i></th>
+                <th>Audit</th>
+                <th class="sortable" data-sort="solutions_priority">Priority <i class="fas fa-sort"></i></th>
+                <th style="width:120px">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="leadsTableBody"></tbody>
+          </table>
+        </div>
+
+        <div class="pagination" id="pagination"></div>
+
+      </section>
+
+      <!-- ================================ -->
+      <!-- PIPELINE VIEW -->
+      <!-- ================================ -->
+      <section id="pipelineView" class="view">
+        <div class="pipeline-board" id="pipelineBoard"></div>
+      </section>
+
+      <!-- ================================ -->
+      <!-- AUDITS VIEW -->
+      <!-- ================================ -->
+      <section id="auditsView" class="view">
+        <div class="audits-grid" id="auditsGrid"></div>
+      </section>
+
+      <!-- ================================ -->
+      <!-- APOLLO SEARCH VIEW -->
+      <!-- ================================ -->
+      <section id="apolloView" class="view">
+
+        <div class="apollo-header">
+          <div class="apollo-header-left">
+            <h2>🔍 Apollo.io / Lusha Search</h2>
+            <p class="apollo-subtitle">Find decision-makers and import directly to your pipeline</p>
+          </div>
+          <div class="apollo-header-right">
+            <button id="apolloSettingsBtn" class="btn-ghost btn-sm">
+              <i class="fas fa-cog"></i>
+              <span>API Settings</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Apollo API Settings Modal (inline) -->
+        <div id="apolloApiModal" class="modal hidden">
+          <div class="modal-overlay"></div>
+          <div class="modal-content modal-sm">
+            <div class="modal-header">
+              <h3><i class="fas fa-key"></i> API Settings</h3>
+              <button class="modal-close" id="apolloApiModalClose">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <div class="modal-body">
+              <div id="apolloKeySource" style="padding:10px 14px;background:var(--bg-elevated);border-radius:var(--radius-sm);font-size:13px;font-weight:600;margin-bottom:16px;">Checking...</div>
+
+              <div class="form-group">
+                <label>Apollo API Key</label>
+                <input type="password" id="apolloApiKeyInput" placeholder="Paste your Apollo API key" style="font-family:monospace">
+                <small class="field-hint">
+                  <a href="https://app.apollo.io/#/settings/integrations/api" target="_blank" style="color:var(--primary-light)">Apollo → Settings → Integrations → API</a>
+                </small>
+              </div>
+
+              <div style="background:rgba(249,115,22,0.08);border:1px solid var(--orange);border-radius:var(--radius-sm);padding:12px 14px;margin-top:12px;font-size:12px;color:var(--orange);line-height:1.6">
+                <strong>⚠️ CORS:</strong> Apollo blocks direct browser requests. Keep <code>node server.js</code> running as a proxy.
+              </div>
+
+              <div class="form-group" style="margin-top:14px">
+                <label>Proxy URL <span style="color:var(--text-muted);font-weight:400;text-transform:none">(default: http://localhost:3001)</span></label>
+                <input type="url" id="apolloProxyUrl" placeholder="http://localhost:3001">
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn-ghost" id="apolloApiClearBtn"><i class="fas fa-trash"></i> Clear</button>
+              <button class="btn-primary" id="apolloApiSaveBtn"><i class="fas fa-save"></i> Save</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Search Form -->
+        <div class="apollo-search-card" id="apolloSearchCard">
+          <div class="apollo-search-form">
+
+            <div class="form-row">
+              <div class="form-group">
+                <label><i class="fas fa-briefcase"></i> Job Titles</label>
+                <textarea id="apolloJobTitles" rows="5" placeholder="CEO&#10;Founder&#10;CMO (one per line)">CEO
+Founder
+Co-Founder
+Managing Director
+CMO
+VP Marketing
+Head of Sales
+Director of Marketing</textarea>
+              </div>
+
+              <div class="form-group">
+                <label><i class="fas fa-industry"></i> Industries</label>
+                <textarea id="apolloIndustries" rows="5" placeholder="Legal Services&#10;SaaS (one per line)">Legal Services
+Accounting
+Financial Services
+Management Consulting
+Computer Software
+SaaS
+Real Estate
+E-Learning
+Human Resources</textarea>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label><i class="fas fa-map-marker-alt"></i> Location / Region</label>
+                <select id="apolloLocation">
+                  <optgroup label="🌏 Asia">
+                    <option value="India" selected>🇮🇳 India</option>
+                    <option value="India,Mumbai">🇮🇳 India — Mumbai</option>
+                    <option value="India,Delhi">🇮🇳 India — Delhi NCR</option>
+                    <option value="India,Bangalore">🇮🇳 India — Bangalore</option>
+                    <option value="India,Hyderabad">🇮🇳 India — Hyderabad</option>
+                    <option value="India,Chennai">🇮🇳 India — Chennai</option>
+                    <option value="India,Pune">🇮🇳 India — Pune</option>
+                    <option value="Singapore">🇸🇬 Singapore</option>
+                    <option value="UAE">🇦🇪 UAE</option>
+                    <option value="UAE,Dubai">🇦🇪 UAE — Dubai</option>
+                    <option value="Saudi Arabia">🇸🇦 Saudi Arabia</option>
+                    <option value="Japan">🇯🇵 Japan</option>
+                    <option value="Hong Kong">🇭🇰 Hong Kong</option>
+                  </optgroup>
+                  <optgroup label="🌎 North America">
+                    <option value="United States">🇺🇸 United States</option>
+                    <option value="United States,New York">🇺🇸 USA — New York</option>
+                    <option value="United States,California">🇺🇸 USA — California</option>
+                    <option value="United States,San Francisco">🇺🇸 USA — San Francisco</option>
+                    <option value="United States,Los Angeles">🇺🇸 USA — Los Angeles</option>
+                    <option value="United States,Texas">🇺🇸 USA — Texas</option>
+                    <option value="United States,Chicago">🇺🇸 USA — Chicago</option>
+                    <option value="United States,Florida">🇺🇸 USA — Florida</option>
+                    <option value="United States,Boston">🇺🇸 USA — Boston</option>
+                    <option value="United States,Seattle">🇺🇸 USA — Seattle</option>
+                    <option value="Canada">🇨🇦 Canada</option>
+                    <option value="Canada,Toronto">🇨🇦 Canada — Toronto</option>
+                    <option value="Canada,Vancouver">🇨🇦 Canada — Vancouver</option>
+                  </optgroup>
+                  <optgroup label="🌍 Europe">
+                    <option value="United Kingdom">🇬🇧 United Kingdom</option>
+                    <option value="United Kingdom,London">🇬🇧 UK — London</option>
+                    <option value="Germany">🇩🇪 Germany</option>
+                    <option value="Germany,Berlin">🇩🇪 Germany — Berlin</option>
+                    <option value="France">🇫🇷 France</option>
+                    <option value="France,Paris">🇫🇷 France — Paris</option>
+                    <option value="Netherlands">🇳🇱 Netherlands</option>
+                    <option value="Ireland">🇮🇪 Ireland</option>
+                    <option value="Switzerland">🇨🇭 Switzerland</option>
+                    <option value="Sweden">🇸🇪 Sweden</option>
+                    <option value="Spain">🇪🇸 Spain</option>
+                    <option value="Italy">🇮🇹 Italy</option>
+                  </optgroup>
+                  <optgroup label="🌏 Oceania">
+                    <option value="Australia">🇦🇺 Australia</option>
+                    <option value="Australia,Sydney">🇦🇺 Australia — Sydney</option>
+                    <option value="Australia,Melbourne">🇦🇺 Australia — Melbourne</option>
+                    <option value="New Zealand">🇳🇿 New Zealand</option>
+                  </optgroup>
+                  <optgroup label="🌍 Other">
+                    <option value="Israel">🇮🇱 Israel</option>
+                    <option value="South Africa">🇿🇦 South Africa</option>
+                    <option value="Brazil">🇧🇷 Brazil</option>
+                    <option value="Mexico">🇲🇽 Mexico</option>
+                  </optgroup>
+                  <optgroup label="🌐 Global">
+                    <option value="">🌐 Any Location</option>
+                  </optgroup>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label><i class="fas fa-users"></i> Company Size</label>
+                <select id="apolloCompanySize">
+                  <option value="">Any Size</option>
+                  <option value="1,10">1–10 employees</option>
+                  <option value="11,50" selected>11–50 employees</option>
+                  <option value="51,200">51–200 employees</option>
+                  <option value="201,500">201–500 employees</option>
+                  <option value="501,1000">501–1000 employees</option>
+                  <option value="1001,">1000+ employees</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label><i class="fas fa-dollar-sign"></i> Revenue Range</label>
+                <select id="apolloRevenue">
+                  <option value="">Any Revenue</option>
+                  <option value="0,1M">Under $1M</option>
+                  <option value="1M,10M" selected>$1M – $10M</option>
+                  <option value="10M,50M">$10M – $50M</option>
+                  <option value="50M,100M">$50M – $100M</option>
+                  <option value="100M,">$100M+</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Search Actions -->
+            <div class="form-actions">
+              <button id="apolloSearchBtn" class="btn-primary btn-large">
+                <i class="fas fa-search"></i>
+                <span>Search Apollo</span>
+              </button>
+              <button id="lushaSearchBtn" class="btn-ghost btn-large" type="button"
+                      style="border-color:var(--yellow);color:var(--yellow)">
+                <i class="fas fa-gem"></i>
+                <span>Search Lusha</span>
+              </button>
+              <button id="apolloClearBtn" class="btn-ghost" type="button">
+                <i class="fas fa-eraser"></i> Clear
+              </button>
+              <button id="apolloEmailSelectedBtn" class="btn-ghost" type="button" style="display:none">
+                <i class="fas fa-envelope"></i>
+                Email Selected (<span id="apolloEmailCount">0</span>)
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Results -->
+        <div id="apolloResults" class="apollo-results" style="display:none">
+          <div class="apollo-results-header">
+            <div class="apollo-results-stats">
+              <span class="results-count">
+                <i class="fas fa-users"></i>
+                <span id="apolloResultCount">0</span> results
+              </span>
+              <span class="results-selected">
+                <span id="apolloSelectedCount">0</span> selected
+              </span>
+            </div>
+            <div class="apollo-results-actions">
+              <button id="apolloSelectAllBtn" class="btn-ghost btn-sm">
+                <i class="fas fa-check-square"></i> Select All
+              </button>
+              <button id="apolloDeselectAllBtn" class="btn-ghost btn-sm">
+                <i class="fas fa-square"></i> Deselect
+              </button>
+              <button id="apolloEmailSelectedBtn2" class="btn-ghost btn-sm" disabled>
+                <i class="fas fa-envelope"></i> Email Selected
+              </button>
+              <button id="apolloImportSelectedBtn" class="btn-primary btn-sm" disabled>
+                <i class="fas fa-download"></i>
+                Import (<span id="importCount">0</span>)
+              </button>
+            </div>
+          </div>
+          <div id="apolloResultsList" class="apollo-results-list"></div>
+        </div>
+
+        <!-- Loading -->
+        <div id="apolloLoading" class="apollo-loading" style="display:none">
+          <i class="fas fa-spinner fa-spin"></i>
+          <p>Searching database...</p>
+        </div>
+
+      </section>
+
+      <!-- ================================ -->
+      <!-- LEAD INTELLIGENCE VIEW -->
+      <!-- ================================ -->
+      <section id="qualifyView" class="view">
+
+        <div class="qualify-header">
+          <div>
+            <h2><i class="fas fa-brain"></i> Lead Intelligence</h2>
+            <p class="apollo-subtitle">Verify contacts, analyze websites, and find who needs your help most</p>
+          </div>
+        </div>
+
+        <div class="qualify-actions-grid">
+
+          <!-- Single Lead Analysis -->
+          <div class="card qualify-card">
+            <div class="card-header">
+              <h3>🔍 Analyze a Lead</h3>
+            </div>
+            <div class="qualify-form">
+              <div class="form-group">
+                <label>Company Name *</label>
+                <input type="text" id="qualifyCompany" placeholder="e.g., Acme Corp">
+              </div>
+              <div class="form-group">
+                <label>Website URL</label>
+                <input type="url" id="qualifyWebsite" placeholder="https://acme.com">
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div class="form-group">
+                  <label>Email</label>
+                  <input type="email" id="qualifyEmail" placeholder="john@acme.com">
+                </div>
+                <div class="form-group">
+                  <label>Industry</label>
+                  <input type="text" id="qualifyIndustry" placeholder="e.g., Legal">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Contact's Job Title</label>
+                <input type="text" id="qualifyJobTitle" placeholder="e.g., CEO">
+              </div>
+              <button id="qualifyBtn" class="btn-primary" style="width:100%;margin-top:4px">
+                <i class="fas fa-search"></i> Analyze &amp; Qualify
+              </button>
+            </div>
+          </div>
+
+          <!-- Bulk Qualification -->
+          <div class="card qualify-card">
+            <div class="card-header">
+              <h3>⚡ Bulk Qualification</h3>
+            </div>
+            <p style="color:var(--text-secondary);font-size:13px;margin-bottom:14px;line-height:1.5">
+              Auto-analyze all leads with websites. Finds who needs your help most.
+            </p>
+            <div class="bulk-qualify-stats">
+              <div class="bq-stat">
+                <span class="bq-number" id="bqTotal">0</span>
+                <span class="bq-label">Total</span>
+              </div>
+              <div class="bq-stat">
+                <span class="bq-number" id="bqWithSite">0</span>
+                <span class="bq-label">Have Site</span>
+              </div>
+              <div class="bq-stat">
+                <span class="bq-number" id="bqAnalyzed">0</span>
+                <span class="bq-label">Analyzed</span>
+              </div>
+            </div>
+            <button id="bulkQualifyBtn" class="btn-primary" style="width:100%;margin-top:14px">
+              <i class="fas fa-bolt"></i> Qualify All with Websites
+            </button>
+            <button id="verifyAllEmailsBtn" class="btn-ghost" style="width:100%;margin-top:8px">
+              <i class="fas fa-envelope-circle-check"></i> Verify All Emails
+            </button>
+
+            <!-- Lusha Enrichment Block -->
+            <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--border)">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                <h4 style="font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px;margin:0">
+                  <i class="fas fa-gem" style="color:var(--yellow)"></i> Lusha Enrichment
+                </h4>
+                <span id="lushaCreditsDisplay"
+                      style="font-size:11px;color:var(--text-muted);cursor:pointer;text-decoration:underline"
+                      onclick="checkLushaCredits()">
+                  Check credits
+                </span>
+              </div>
+              <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;line-height:1.5">
+                Auto-fill missing emails and phone numbers using your Lusha subscription.
+              </p>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+                <div class="bq-stat">
+                  <span class="bq-number" id="lushaNoEmail" style="color:var(--red)">0</span>
+                  <span class="bq-label">No Email</span>
+                </div>
+                <div class="bq-stat">
+                  <span class="bq-number" id="lushaNoPhone" style="color:var(--orange)">0</span>
+                  <span class="bq-label">No Phone</span>
+                </div>
+              </div>
+              <button id="lushaEnrichAllBtn" class="btn-primary"
+                      style="width:100%;background:var(--yellow);color:#0A0A0F;font-weight:700"
+                      onclick="bulkEnrichWithLusha()">
+                <i class="fas fa-wand-magic-sparkles"></i> Enrich All with Lusha
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Email Verify -->
+          <div class="card qualify-card">
+            <div class="card-header">
+              <h3>✉️ Email Verification</h3>
+            </div>
+            <div class="form-group">
+              <label>Email Address</label>
+              <input type="email" id="quickVerifyEmail" placeholder="john@company.com">
+            </div>
+            <button id="quickVerifyBtn" class="btn-primary" style="width:100%">
+              <i class="fas fa-check-circle"></i> Verify Email
+            </button>
+            <div id="quickVerifyResult" style="margin-top:14px;display:none"></div>
+          </div>
+
+        </div>
+
+        <!-- Single Analysis Results -->
+        <div id="qualifyResults" class="qualify-results" style="display:none">
+          <div class="qualify-score-header" id="qualifyScoreHeader"></div>
+          <div class="qualify-results-grid">
+            <div class="card" id="emailVerifyCard" style="display:none">
+              <div class="card-header"><h3>✉️ Email Verification</h3></div>
+              <div id="emailVerifyResult"></div>
+            </div>
+            <div class="card" id="websiteAnalysisCard" style="display:none">
+              <div class="card-header"><h3>🌐 Website Analysis</h3></div>
+              <div id="websiteAnalysisResult"></div>
+            </div>
+            <div class="card" id="aiAnalysisCard" style="display:none">
+              <div class="card-header"><h3>🤖 AI Insights</h3></div>
+              <div id="aiAnalysisResult"></div>
+            </div>
+            <div class="card" id="opportunitiesCard" style="display:none">
+              <div class="card-header"><h3>🎯 Opportunities for OnneaLabs</h3></div>
+              <div id="opportunitiesResult"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bulk Results -->
+        <div id="bulkQualifyResults" style="display:none;margin-top:22px">
+          <div class="card">
+            <div class="card-header">
+              <h3>📊 Bulk Qualification Results</h3>
+              <div style="display:flex;gap:8px">
+                <button id="sortByScoreBtn" class="btn-ghost btn-sm">
+                  <i class="fas fa-sort-amount-down"></i> Sort by Score
+                </button>
+                <button id="exportQualifyBtn" class="btn-ghost btn-sm">
+                  <i class="fas fa-download"></i> Export
+                </button>
+              </div>
+            </div>
+            <div id="bulkResultsList"></div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ================================ -->
+      <!-- BULK EMAIL VIEW -->
+      <!-- ================================ -->
+      <section id="bulkemailView" class="view">
+
+        <div class="bulk-email-container">
+
+          <div class="email-composer-header">
+            <div>
+              <h2><i class="fas fa-paper-plane"></i> Bulk Email Composer</h2>
+              <p class="apollo-subtitle">Send personalized emails to multiple leads at once</p>
+            </div>
+            <div class="email-header-actions">
+              <button id="loadTemplateBtn" class="btn-ghost btn-sm">
+                <i class="fas fa-folder-open"></i> Load Template
+              </button>
+              <button id="saveTemplateBtn" class="btn-ghost btn-sm">
+                <i class="fas fa-save"></i> Save Template
+              </button>
+            </div>
+          </div>
+          <!-- Add this inside the bulkemailView section -->
+          <div style="margin-top:16px;padding:16px;background:var(--bg-elevated);border-radius:var(--radius);border:1px solid var(--border)">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div>
+                <div style="font-weight:600;font-size:13px">📬 Reply Detection</div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Auto-checks every 10 min. Click to check now.</div>
+              </div>
+              <button id="checkRepliesBtn" onclick="manualCheckReplies()" class="btn-ghost btn-sm">
+                <i class="fas fa-inbox"></i> Check Replies Now
+              </button>
+            </div>
+            <div id="gmailStatus" style="margin-top:10px;font-size:12px;color:var(--text-muted)">Checking Gmail...</div>
+          </div>
+          <div class="email-composer-grid">
+
+            <!-- Recipients Panel -->
+            <div class="email-recipients-card">
+              <div class="card-header">
+                <h3><i class="fas fa-users"></i> Recipients</h3>
+                <span class="recipient-count" id="recipientCount">0 selected</span>
+              </div>
+
+              <div class="recipient-source-tabs">
+                <button class="tab-btn active" data-source="leads">From Leads</button>
+                <button class="tab-btn" data-source="apollo">From Apollo</button>
+                <button class="tab-btn" data-source="manual">Manual</button>
+              </div>
+
+              <!-- Leads Tab -->
+              <div id="recipientLeadsTab" class="recipient-tab active">
+                <div class="recipient-search">
+                  <input type="text" id="recipientLeadSearch" placeholder="Search by name, email, company...">
+                </div>
+                <div class="recipient-filters">
+                  <select id="recipientStageFilter">
+                    <option value="">All Stages</option>
+                    <option value="new">New</option>
+                    <option value="contacted">Contacted</option>
+                    <option value="responded">Responded</option>
+                    <option value="meeting_scheduled">Meeting Scheduled</option>
+                    <option value="proposal_sent">Proposal Sent</option>
+                    <option value="negotiation">Negotiation</option>
+                  </select>
+                  <button id="selectAllRecipients" class="btn-ghost btn-sm">All</button>
+                </div>
+                <div id="recipientLeadsList" class="recipient-list"></div>
+              </div>
+
+              <!-- Apollo Tab -->
+              <div id="recipientApolloTab" class="recipient-tab">
+                <!-- populated by JS -->
+              </div>
+
+              <!-- Manual Tab -->
+              <div id="recipientManualTab" class="recipient-tab">
+                <div class="form-group" style="margin-top:8px">
+                  <label>Emails (one per line, or "Name &lt;email&gt;")</label>
+                  <textarea id="manualEmails" rows="6"
+                    placeholder="john@example.com&#10;Jane Smith &lt;jane@co.com&gt;"></textarea>
+                </div>
+                <button id="addManualEmailsBtn" class="btn-primary btn-sm">
+                  <i class="fas fa-plus"></i> Add to Recipients
+                </button>
+              </div>
+
+              <!-- Selected -->
+              <div class="selected-recipients">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                  <h4 style="margin:0;font-size:12px;color:var(--text-secondary)">
+                    Selected (<span id="selectedRecipientCount">0</span>)
+                  </h4>
+                  <button id="clearAllRecipients" class="btn-ghost btn-sm"
+                          style="font-size:11px;padding:3px 8px">
+                    <i class="fas fa-times"></i> Clear
+                  </button>
+                </div>
+                <div id="selectedRecipientsList" class="selected-recipients-list"></div>
+              </div>
+            </div>
+
+            <!-- Composer Panel -->
+            <div class="email-composer-card">
+              <div class="card-header">
+                <h3><i class="fas fa-edit"></i> Compose Email</h3>
+              </div>
+
+              <div class="form-group">
+                <label>From Name</label>
+                <input type="text" id="emailFromName" placeholder="Your Name" value="OnneaLabs Team">
+              </div>
+              <div class="form-group">
+                <label>From Email</label>
+                <input type="email" id="emailFromEmail" placeholder="your@email.com">
+              </div>
+              <div class="form-group">
+                <label>Subject Line</label>
+                <input type="text" id="emailSubject"
+                       placeholder="{{first_name}}, quick question about {{company}}">
+                <small class="field-hint">
+                  Placeholders: {{first_name}} {{name}} {{company}} {{title}} {{industry}}
+                </small>
+              </div>
+              <div class="form-group">
+                <label>Email Body</label>
+                <div class="placeholder-buttons">
+                  <span class="hint-text">Insert:</span>
+                  <button type="button" class="placeholder-btn" data-placeholder="{{first_name}}">First Name</button>
+                  <button type="button" class="placeholder-btn" data-placeholder="{{name}}">Full Name</button>
+                  <button type="button" class="placeholder-btn" data-placeholder="{{company}}">Company</button>
+                  <button type="button" class="placeholder-btn" data-placeholder="{{title}}">Title</button>
+                  <button type="button" class="placeholder-btn" data-placeholder="{{industry}}">Industry</button>
+                </div>
+                <textarea id="emailBody" rows="14"
+                  placeholder="Hi {{first_name}},
+
+I noticed {{company}} is doing great work in {{industry}}.
+
+At OnneaLabs, we help businesses like yours grow faster through better digital strategy.
+
+Would you be open to a quick 15-minute call?
+
+Best,
+[Your Name]"></textarea>
+              </div>
+
+              <div class="email-actions">
+                <button id="previewEmailBtn" class="btn-ghost">
+                  <i class="fas fa-eye"></i> Preview
+                </button>
+                <button id="sendTestEmailBtn" class="btn-ghost">
+                  <i class="fas fa-flask"></i> Test
+                </button>
+                <button id="sendBulkEmailBtn" class="btn-primary btn-large" disabled style="flex:1">
+                  <i class="fas fa-paper-plane"></i>
+                  Send to <span id="sendCount">0</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ================================ -->
+  <!-- ADD/EDIT LEAD MODAL -->
+  <!-- ================================ -->
+  <div id="leadModal" class="modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalTitle">Add New Lead</h3>
+        <button class="modal-close" id="modalClose"><i class="fas fa-times"></i></button>
+      </div>
+      <form id="leadForm" class="modal-body">
+        <input type="hidden" id="leadId">
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Name *</label>
+            <input type="text" id="leadName" required placeholder="Full name">
+          </div>
+          <div class="form-group">
+            <label>Company</label>
+            <input type="text" id="leadCompany" placeholder="Company name">
+          </div>
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="tel" id="leadPhone" placeholder="+91 XXXXX XXXXX">
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="leadEmail" placeholder="email@example.com">
+          </div>
+          <div class="form-group">
+            <label>Industry</label>
+            <input type="text" id="leadIndustry" placeholder="e.g., Healthcare, SaaS">
+          </div>
+          <div class="form-group">
+            <label>Lead Source</label>
+            <select id="leadSource">
+              <option value="other">Select source...</option>
+              <option value="website_form">Website Form</option>
+              <option value="social_instagram">Instagram</option>
+              <option value="social_linkedin">LinkedIn</option>
+              <option value="social_twitter">Twitter/X</option>
+              <option value="apollo">Apollo</option>
+              <option value="lusha">Lusha</option>
+              <option value="manual_research">Manual Research</option>
+              <option value="referral">Referral</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Contact Stage</label>
+            <select id="leadStage">
+              <option value="new">New</option>
+              <option value="contacted">Contacted</option>
+              <option value="responded">Responded</option>
+              <option value="meeting_scheduled">Meeting Scheduled</option>
+              <option value="proposal_sent">Proposal Sent</option>
+              <option value="negotiation">Negotiation</option>
+              <option value="won">Won ✓</option>
+              <option value="lost">Lost ✗</option>
+              <option value="dormant">Dormant</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Solutions Priority</label>
+            <select id="leadPriority">
+              <option value="not_assessed">Not Assessed</option>
+              <option value="critical">🔴 Critical</option>
+              <option value="high">🟠 High</option>
+              <option value="medium">🟡 Medium</option>
+              <option value="low">🟢 Low</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-section-title">ICP Targeting</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Business Category</label>
+            <select id="leadCategory">
+              <option value="other">Select category...</option>
+              <option value="professional_services">🏛️ Professional Services</option>
+              <option value="consulting">💼 Consulting</option>
+              <option value="hr_recruitment">👥 HR & Recruitment</option>
+              <option value="fintech_trading">💰 Fintech & Trading</option>
+              <option value="edtech">📚 EdTech</option>
+              <option value="saas">☁️ SaaS</option>
+              <option value="real_estate">🏢 Real Estate</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Job Title</label>
+            <input type="text" id="leadJobTitle" placeholder="e.g., CEO, CMO">
+          </div>
+          <div class="form-group">
+            <label>Seniority Level</label>
+            <select id="leadSeniority">
+              <option value="other">Select seniority...</option>
+              <option value="founder_ceo">🚀 Founder / CEO</option>
+              <option value="c_suite">⭐ C-Suite</option>
+              <option value="vp_director">📊 VP / Director</option>
+              <option value="manager_lead">📈 Manager / Lead</option>
+              <option value="ic_specialist">Individual Contributor</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Company Size</label>
+            <select id="leadCompanySize">
+              <option value="">Unknown</option>
+              <option value="solopreneur">1 (Solo)</option>
+              <option value="micro">2–10</option>
+              <option value="small">11–50</option>
+              <option value="medium">51–200</option>
+              <option value="large">201–1000</option>
+              <option value="enterprise">1000+</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>LinkedIn URL</label>
+            <input type="url" id="leadLinkedin" placeholder="https://linkedin.com/in/...">
+          </div>
+          <div class="form-group">
+            <label>Company Website</label>
+            <input type="url" id="leadWebsite" placeholder="https://...">
+          </div>
+        </div>
+
+        <div class="form-section-title">Audit Information</div>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="leadAudit">
+            <span>Free Audit Taken</span>
+          </label>
+        </div>
+        <div class="form-group" id="auditDateGroup" style="display:none">
+          <label>Audit Date</label>
+          <input type="date" id="leadAuditDate">
+        </div>
+        <div class="form-group">
+          <label>Problems Identified</label>
+          <textarea id="leadProblems" rows="3" placeholder="List problems found during audit..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Remarks / Notes</label>
+          <textarea id="leadRemarks" rows="3" placeholder="Notes, follow-up actions..."></textarea>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-ghost" id="modalCancel">Cancel</button>
+          <button type="submit" class="btn-primary">
+            <i class="fas fa-save"></i>
+            <span id="submitBtnText">Save Lead</span>
+          </button>
+        </div>
+      </form>
+
+      <div id="activitySection" class="activity-section hidden">
+        <h4>Activity Log</h4>
+        <div id="activityLog" class="activity-log"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================ -->
+  <!-- DELETE MODAL -->
+  <!-- ================================ -->
+  <div id="deleteModal" class="modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="modal-content modal-sm">
+      <div class="modal-header">
+        <h3><i class="fas fa-trash" style="color:var(--red)"></i> Confirm Delete</h3>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:14px;line-height:1.6">
+          Are you sure you want to delete <strong id="deleteLeadName"></strong>?
+          This action cannot be undone.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" id="deleteCancelBtn">Cancel</button>
+        <button class="btn-danger" id="deleteConfirmBtn">
+          <i class="fas fa-trash"></i> Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================ -->
+  <!-- EMAIL PREVIEW MODAL -->
+  <!-- ================================ -->
+  <div id="emailPreviewModal" class="modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fas fa-eye"></i> Email Preview</h3>
+        <button class="modal-close" id="emailPreviewClose"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="email-preview-nav">
+          <button id="prevPreviewBtn" class="btn-ghost btn-sm" disabled>
+            <i class="fas fa-chevron-left"></i> Previous
+          </button>
+          <span id="previewCounter" style="font-size:13px;color:var(--text-secondary)">1 of 1</span>
+          <button id="nextPreviewBtn" class="btn-ghost btn-sm" disabled>
+            Next <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+        <div class="email-preview-content">
+          <div class="preview-field">
+            <label>To:</label>
+            <span id="previewTo"></span>
+          </div>
+          <div class="preview-field">
+            <label>Subject:</label>
+            <span id="previewSubject"></span>
+          </div>
+          <div class="preview-body" id="previewBody"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" id="closePreviewBtn">Close</button>
+        <button class="btn-primary" id="confirmSendBtn">
+          <i class="fas fa-paper-plane"></i> Send All Emails
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================ -->
+  <!-- TEMPLATE MODAL -->
+  <!-- ================================ -->
+  <div id="templateModal" class="modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="modal-content modal-sm">
+      <div class="modal-header">
+        <h3><i class="fas fa-folder"></i> Email Templates</h3>
+        <button class="modal-close" id="templateModalClose"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <div id="templateList" class="template-list"></div>
+        <div class="save-template-form" id="saveTemplateForm" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+          <div class="form-group">
+            <label>Template Name</label>
+            <input type="text" id="templateName" placeholder="e.g., Cold Outreach v1">
+          </div>
+          <button id="confirmSaveTemplate" class="btn-primary btn-full">
+            <i class="fas fa-save"></i> Save Template
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================ -->
+  <!-- SENDING PROGRESS MODAL -->
+  <!-- ================================ -->
+  <div id="sendingModal" class="modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="modal-content modal-sm">
+      <div class="modal-header">
+        <h3><i class="fas fa-paper-plane"></i> Sending Emails</h3>
+      </div>
+      <div class="modal-body" style="text-align:center;padding:36px 24px">
+        <div id="sendingProgress">
+          <i class="fas fa-spinner fa-spin"
+             style="font-size:44px;color:var(--primary-light);display:block;margin-bottom:16px"></i>
+          <p style="font-size:16px;margin-bottom:6px;font-weight:600">Sending emails...</p>
+          <p style="color:var(--text-muted);font-size:13px">
+            <span id="sentCount">0</span> of <span id="totalSendCount">0</span> sent
+          </p>
+          <div class="progress-bar" style="margin-top:16px">
+            <div class="progress-fill" id="sendProgressFill" style="width:0%"></div>
+          </div>
+        </div>
+        <div id="sendingComplete" style="display:none">
+          <i class="fas fa-check-circle"
+             style="font-size:44px;color:var(--green);display:block;margin-bottom:16px"></i>
+          <p style="font-size:16px;margin-bottom:6px;font-weight:600">All done!</p>
+          <p style="color:var(--text-muted);font-size:13px">
+            <span id="successCount">0</span> sent ·
+            <span id="failCount">0</span> failed
+          </p>
+        </div>
+      </div>
+      <div class="modal-footer" id="sendingModalFooter" style="display:none">
+        <button class="btn-primary btn-full" id="closeSendingModal">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- App -->
+  <script src="app.js"></script>
+
+</body>
+</html> 

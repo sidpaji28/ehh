@@ -1,0 +1,31 @@
+{
+  "name": "onnealabs-lead-dashboard",
+  "version": "1.0.0",
+  "description": "OnneaLabs Lead Tracking & Automation System",
+  "main": "index.js",
+  "scripts": {
+    "dev": "npx http-server public -p 3000 -c-1",
+    "start": "npx http-server public -p 3000"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.105.3",
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1",
+    "googleapis": "^171.4.0",
+    "node-fetch": "^3.3.2",
+    "nodemailer": "^8.0.7"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "csv-parser": "^3.0.0",
+    "http-server": "^14.1.1"
+  },
+  "keywords": [
+    "lead-tracking",
+    "crm",
+    "apollo",
+    "supabase"
+  ],
+  "author": "OnneaLabs",
+  "license": "MIT"
+}
