@@ -21,7 +21,7 @@ const GMAIL_CLIENT_ID     = '';
 const GMAIL_CLIENT_SECRET = '';
 const GMAIL_REFRESH_TOKEN = '';
 const SUPABASE_SERVICE_KEY = ''; // NOT the anon key
-const SUPABASE_URL = ''
+const SUPABASE_URL = '';
 const nodemailer       = require('nodemailer');
 const { google }       = require('googleapis');
 const { createClient } = require('@supabase/supabase-js');
@@ -156,28 +156,46 @@ app.post('/lusha/search', async (req, res) => {
     let lushaBody;
 
     if (body.pages && body.filters) {
-      // Already in correct Lusha format — forward directly
       lushaBody = body;
     } else {
-      // Old format — convert it
       const { job_titles, industries, countries, company_sizes, page = 0, per_page = 25 } = body;
 
       const contactInclude = {};
       const companyInclude = {};
 
-      const deptMap = {
-        'CEO': 'C-Suite', 'Founder': 'C-Suite', 'Co-Founder': 'C-Suite',
-        'Managing Director': 'C-Suite', 'CMO': 'Marketing', 'VP Marketing': 'Marketing',
-        'Head of Marketing': 'Marketing', 'Director of Marketing': 'Marketing',
-        'Head of Sales': 'Sales', 'VP Sales': 'Sales', 'Director of Sales': 'Sales',
-        'CTO': 'Engineering & Technical', 'CFO': 'Finance', 'HR Director': 'Human Resources',
-      };
-
+      // ── DEPARTMENTS — case-insensitive, fuzzy match ──────────────────
       if (job_titles?.length) {
-        const depts = [...new Set(job_titles.map(t => deptMap[t] || 'C-Suite'))];
-        contactInclude.departments = depts;
+        const deptMap = [
+          { dept: 'C-Suite',                  keywords: ['ceo','founder','co-founder','cofounder','owner','president','managing director','md','chief executive','principal'] },
+          { dept: 'Marketing',                keywords: ['cmo','marketing','brand','growth','content','seo','social media','demand'] },
+          { dept: 'Sales',                    keywords: ['sales','business development','bd','account executive','ae','revenue','partnerships'] },
+          { dept: 'Engineering & Technical',  keywords: ['cto','engineer','developer','tech','software','it ','data','product','architect'] },
+          { dept: 'Finance',                  keywords: ['cfo','finance','financial','accounting','accounts','ca ','chartered','tax','audit'] },
+          { dept: 'Human Resources',          keywords: ['hr','human resource','talent','recruit','people','workforce','staffing'] },
+          { dept: 'Operations',               keywords: ['coo','operations','ops','supply chain','logistics','process'] },
+          { dept: 'Legal',                    keywords: ['legal','counsel','attorney','law','compliance','contract'] },
+          { dept: 'Customer Success',         keywords: ['customer success','customer service','support','client','account manager'] },
+        ];
+
+        const depts = new Set();
+        job_titles.forEach(title => {
+          const t = title.toLowerCase().trim();
+          let matched = false;
+          for (const { dept, keywords } of deptMap) {
+            if (keywords.some(k => t.includes(k))) {
+              depts.add(dept);
+              matched = true;
+              break;
+            }
+          }
+          // If no match, default to C-Suite (safest for prospecting)
+          if (!matched) depts.add('C-Suite');
+        });
+        contactInclude.departments = [...depts];
+        console.log('→ Mapped departments:', contactInclude.departments);
       }
 
+      // ── LOCATIONS ────────────────────────────────────────────────────
       if (countries?.length) {
         contactInclude.locations = countries.map(c => {
           const parts = c.split(',');
@@ -187,17 +205,49 @@ app.post('/lusha/search', async (req, res) => {
         });
       }
 
-      const industryMap = {
-        'Legal Services': 7, 'Accounting': 1, 'Financial Services': 6,
-        'Management Consulting': 10, 'Computer Software': 3, 'SaaS': 3,
-        'Real Estate': 14, 'E-Learning': 5, 'Human Resources': 8, 'Marketing': 11,
-      };
-
+      // ── INDUSTRIES — case-insensitive, fuzzy match ───────────────────
       if (industries?.length) {
-        const ids = [...new Set(industries.map(i => industryMap[i]).filter(Boolean))];
-        if (ids.length) companyInclude.mainIndustriesIds = ids;
+        const industryMap = [
+          { id: 1,  keywords: ['accounting','ca firm','chartered','audit','tax'] },
+          { id: 2,  keywords: ['aerospace','aviation','airline'] },
+          { id: 3,  keywords: ['software','saas','tech','it ','information technology','computer'] },
+          { id: 4,  keywords: ['automotive','car','vehicle','automobile'] },
+          { id: 5,  keywords: ['education','edtech','e-learning','elearning','learning','training','coaching','school','university','college','lms'] },
+          { id: 6,  keywords: ['financial','finance','investment','banking','wealth','fund','asset','insurance','fintech'] },
+          { id: 7,  keywords: ['legal','law','attorney','advocate','counsel'] },
+          { id: 8,  keywords: ['hr','human resource','recruitment','staffing','talent','hiring','manpower'] },
+          { id: 9,  keywords: ['health','medical','hospital','clinic','pharma','wellness','healthcare','biotech'] },
+          { id: 10, keywords: ['consulting','strategy','advisory','management consult'] },
+          { id: 11, keywords: ['marketing','advertising','media','pr ','public relation','creative','agency','branding'] },
+          { id: 12, keywords: ['manufacturing','industrial','factory','production'] },
+          { id: 13, keywords: ['retail','ecommerce','e-commerce','d2c','direct to consumer','fmcg','consumer goods'] },
+          { id: 14, keywords: ['real estate','property','realty','proptech','construction','builder'] },
+          { id: 15, keywords: ['telecom','telecommunications','network','connectivity'] },
+          { id: 16, keywords: ['travel','tourism','hospitality','hotel','restaurant','food'] },
+          { id: 17, keywords: ['logistics','supply chain','shipping','warehouse','transport','freight'] },
+          { id: 18, keywords: ['energy','oil','gas','renewable','solar','power'] },
+          { id: 19, keywords: ['nonprofit','ngo','social','charity'] },
+          { id: 20, keywords: ['crypto','blockchain','web3','defi'] },
+        ];
+
+        const ids = new Set();
+        industries.forEach(industry => {
+          const t = industry.toLowerCase().trim();
+          for (const { id, keywords } of industryMap) {
+            if (keywords.some(k => t.includes(k))) {
+              ids.add(id);
+              break;
+            }
+          }
+        });
+        if (ids.size > 0) {
+          companyInclude.mainIndustriesIds = [...ids];
+          console.log('→ Mapped industry IDs:', companyInclude.mainIndustriesIds);
+        }
+        // If no industry matched, don't filter by industry — return broader results
       }
 
+      // ── COMPANY SIZE ─────────────────────────────────────────────────
       const sizeMap = {
         '1,10':    [{ min: 1,    max: 10    }],
         '11,50':   [{ min: 11,   max: 50    }],
@@ -206,18 +256,28 @@ app.post('/lusha/search', async (req, res) => {
         '501,1000':[{ min: 501,  max: 1000  }],
         '1001,':   [{ min: 1001, max: 100000}],
       };
-
       if (company_sizes?.length) {
         companyInclude.sizes = company_sizes.flatMap(s => sizeMap[s] || []);
       }
 
-      const filters = { contacts: { include: contactInclude } };
+      // ── BUILD FILTERS ─────────────────────────────────────────────────
+      // Only include non-empty filters — too many filters = no results
+      const filters = {};
+
+      if (Object.keys(contactInclude).length > 0) {
+        filters.contacts = { include: contactInclude };
+      }
       if (Object.keys(companyInclude).length > 0) {
         filters.companies = { include: companyInclude };
       }
 
+      // If absolutely no filters, at least filter by department C-Suite
+      if (!filters.contacts && !filters.companies) {
+        filters.contacts = { include: { departments: ['C-Suite'] } };
+      }
+
       lushaBody = {
-        pages: { page: 0, size: Math.max(10, per_page) },
+        pages: { page: Math.max(0, page), size: Math.min(25, per_page) },
         filters,
       };
     }
@@ -242,6 +302,27 @@ app.post('/lusha/search', async (req, res) => {
     if (!response.ok) {
       console.error('Lusha search error:', JSON.stringify(data, null, 2));
       return res.status(response.status).json({ error: data.message || 'Lusha API error', details: data });
+    }
+
+    // If 0 results, retry with fewer filters
+    if (data.data?.length === 0 && lushaBody.filters.companies) {
+      console.log('→ 0 results with company filter, retrying with contacts only...');
+      const retryBody = {
+        pages:   lushaBody.pages,
+        filters: { contacts: lushaBody.filters.contacts || { include: { departments: ['C-Suite'] } } },
+      };
+      const retry = await fetch('https://api.lusha.com/v2/prospecting/contact/search', {
+        method: 'POST',
+        headers: { 'api_key': LUSHA_API_KEY, 'Content-Type': 'application/json', 'accept': 'application/json' },
+        body: JSON.stringify(retryBody),
+      });
+      if (retry.ok) {
+        const retryData = await retry.json();
+        if (retryData.data?.length > 0) {
+          console.log(`✅ Retry got ${retryData.data.length} results`);
+          return res.json({ ...retryData, _retried: true });
+        }
+      }
     }
 
     console.log(`✅ Lusha: ${data.data?.length || 0} results (${data.totalResults || 0} total)`);
